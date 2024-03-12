@@ -21,6 +21,9 @@ func main() {
 	app.Use(cors.New())
 	utils.ConnectToDB()
 	testing.SeedData()
-	routes.TestHandling(app)
+
+	apiGroup := app.Group("/api")
+	routes.ApiHandling(apiGroup)
+	
 	log.Fatal(app.Listen(":3000"))
 }
