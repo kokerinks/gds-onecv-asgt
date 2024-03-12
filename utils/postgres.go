@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"github.com/joho/godotenv"
@@ -14,7 +15,7 @@ func ConnectToDB() {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	dbURI := os.Getenv("DATABASE_URI")
+	dbURI := fmt.Sprintf("postgres://postgres:%s@database:5432/onecv-db", os.Getenv("DATABASE_PASSWORD"))
 
 	db, err := gorm.Open(postgres.Open(dbURI), &gorm.Config{})
 
