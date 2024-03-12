@@ -6,8 +6,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 
-	"gds-onecv-asgt/utils"
 	"gds-onecv-asgt/routes"
+	"gds-onecv-asgt/testing"
+	"gds-onecv-asgt/utils"
 )
 
 func main() {
@@ -19,7 +20,7 @@ func main() {
 
 	app.Use(cors.New())
 	utils.ConnectToDB()
-	
+	testing.SeedData()
 	routes.TestHandling(app)
 	log.Fatal(app.Listen(":3000"))
 }
