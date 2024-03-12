@@ -2,22 +2,21 @@ version: "3.8"
 
 services:
   database:
-    network_mode: "bridge"
     image: postgres:12.8
+    restart: always
     environment:
-      - POSTGRES_URI=${DATABASE_URI}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pg
+      - POSTGRES_DB=onecv-db 
     ports:
       - 5432:5432
     volumes:
       - db:/var/lib/postgresql/data 
   backend:
-    network_mode: "bridge"
     build: .
     ports:
       - 3000:3000
     depends_on:
       - database
-    environment:
-      - DATABASE_URI=${DATABASE_URI}
 volumes:
   db:
