@@ -29,9 +29,17 @@ func ConnectToDB() {
 		log.Fatalln(err)
 	}
 
+	if sqlDB, err := db.DB(); err != nil {
+		log.Fatalf("Error getting underlying database connection: %v", err)
+	} else if err := sqlDB.Ping(); err != nil {
+		log.Fatalf("Error pinging database: %v", err)
+	}
+
 	db.AutoMigrate(&models.Student{}, &models.Teacher{})
+
+	log.Printf("Database connection established.")
 }
 
 func DB() *gorm.DB {
-    return db
+	return db
 }

@@ -24,6 +24,6 @@ func main() {
 
 	apiGroup := app.Group("/api")
 	routes.ApiHandling(apiGroup)
-	
+
 	log.Fatal(app.Listen(":3000"))
 }
