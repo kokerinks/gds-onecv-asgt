@@ -1,9 +1,9 @@
 package controllers
 
 import (
+	"fmt"
 	"gds-onecv-asgt/models"
 	"gds-onecv-asgt/utils"
-	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -74,7 +74,32 @@ func CommonStudents(c *fiber.Ctx) error {
 	query := string(c.Request().URI().QueryString())
 	query = strings.Replace(query, "teacher=", "", -1)
 	teacherEmails := strings.Split(query, "&")
-	log.Println(teacherEmails)
+
+	// If all teachers are not found in database, return 404
+	var existingEmails []string
+	db.Model(&models.Teacher{}).Where("email IN (?)", teacherEmails).Pluck("email", &existingEmails)
+
+	var notFoundTeachers []string
+	for _, email := range teacherEmails {
+		var isFound bool = false
+
+		for _, existingEmail := range existingEmails {
+			if email == existingEmail {
+				isFound = true
+				break
+			}
+		}
+
+		if !isFound {
+			notFoundTeachers = append(notFoundTeachers, email)
+		}
+	}
+
+	if len(notFoundTeachers) > 0 {
+		return c.Status(404).JSON(fiber.Map{
+			"message": fmt.Sprintf("Teacher(s) %v not found in database", notFoundTeachers),
+		})
+	}
 
 	var students []string
 	db.Raw(`
@@ -110,7 +135,7 @@ func Suspend(c *fiber.Ctx) error {
 	}
 
 	req := new(SuspendRequest)
-	if err := c.BodyParser(req); err != nil {
+	if err := c.BodyParser(req); err != nil || req.Student == "" {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "Invalid JSON input",
 		})
@@ -141,13 +166,20 @@ func RetrieveForNotifications(c *fiber.Ctx) error {
 	}
 
 	req := new(RetrieveRequest)
-	if err := c.BodyParser(req); err != nil {
+	if err := c.BodyParser(req); err != nil || req.Teacher == "" || req.Notification == "" {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "Invalid JSON input",
 		})
 	}
 
 	teacherEmail := req.Teacher
+
+	if err := db.Where("email = ?", teacherEmail).First(&models.Teacher{}).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"message": "Teacher does not exist in database.",
+		})
+	}
+
 	notification := req.Notification
 
 	// Extract email addresses from notification

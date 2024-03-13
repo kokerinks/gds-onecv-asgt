@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 
 	"gds-onecv-asgt/routes"
-	"gds-onecv-asgt/testing"
+	"gds-onecv-asgt/testData"
 	"gds-onecv-asgt/utils"
 )
 
@@ -19,8 +19,8 @@ func main() {
 	})
 
 	app.Use(cors.New())
-	utils.ConnectToDB()
-	testing.SeedData()
+	utils.ConnectToDB(false)
+	testData.SeedData()
 
 	apiGroup := app.Group("/api")
 	routes.ApiHandling(apiGroup)

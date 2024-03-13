@@ -1,4 +1,4 @@
-package testing
+package testData
 
 import (
 	"gds-onecv-asgt/models"
@@ -23,10 +23,16 @@ func SeedData() {
 		Email: "student3@gmail.com",
 	}
 	teacher1 := models.Teacher{
-		Email: "teacherX@gmail.com",
+		Email:    "teacherW@gmail.com",
+		Students: []models.Student{},
 	}
 	teacher2 := models.Teacher{
-		Email: "teacherY@gmail.com",
+		Email:    "teacherX@gmail.com",
+		Students: []models.Student{student1},
+	}
+	teacher3 := models.Teacher{
+		Email:    "teacherY@gmail.com",
+		Students: []models.Student{student1, student2},
 	}
 
 	db.Create(&student1)
@@ -34,4 +40,5 @@ func SeedData() {
 	db.Create(&student3)
 	db.Create(&teacher1)
 	db.Create(&teacher2)
+	db.Create(&teacher3)
 }

@@ -15,12 +15,17 @@ import (
 
 var db *gorm.DB
 
-func ConnectToDB() {
+func ConnectToDB(isTesting bool) {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	dbURI := fmt.Sprintf("postgres://postgres:%s@database:5432/onecv-db", os.Getenv("DATABASE_PASSWORD"))
+	var dbURI string
+	if !isTesting {
+		dbURI = fmt.Sprintf("postgres://postgres:%s@database:5432/onecv-db", os.Getenv("DATABASE_PASSWORD"))
+	} else {
+		dbURI = "postgres://postgres@localhost:5432/onecv-db"
+	}
 
 	var err error
 	db, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
