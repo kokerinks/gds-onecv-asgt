@@ -18,8 +18,9 @@ func Register(c *fiber.Ctx) error {
 		Students []string `json:"students"`
 	}
 
+	// Parse request body
 	req := new(RegisterRequest)
-	if err := c.BodyParser(req); err != nil {
+	if err := c.BodyParser(req); err != nil || req.Teacher == "" || len(req.Students) == 0 {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "Invalid JSON input",
 		})
@@ -35,10 +36,11 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
+	// Create students if not exist, and associate teacher with student
 	for _, studentEmail := range studentEmails {
 		var student models.Student
 
-		// Check if student exists
+		// If student does not exist
 		if err := db.Where("email = ?", studentEmail).First(&student).Error; err != nil {
 			student = models.Student{
 				Email:    studentEmail,
@@ -47,7 +49,6 @@ func Register(c *fiber.Ctx) error {
 
 			db.Create(&student)
 
-			// If student exists, check if teacher is already associated with student
 		} else {
 			var isFound bool = false
 
@@ -75,32 +76,31 @@ func CommonStudents(c *fiber.Ctx) error {
 	query = strings.Replace(query, "teacher=", "", -1)
 	teacherEmails := strings.Split(query, "&")
 
-	// If all teachers are not found in database, return 404
 	var existingEmails []string
 	db.Model(&models.Teacher{}).Where("email IN (?)", teacherEmails).Pluck("email", &existingEmails)
 
-	var notFoundTeachers []string
+	// Check if any teachers cannot be found in database
+	var teachersNotFound []string
 	for _, email := range teacherEmails {
 		var isFound bool = false
-
 		for _, existingEmail := range existingEmails {
 			if email == existingEmail {
 				isFound = true
 				break
 			}
 		}
-
 		if !isFound {
-			notFoundTeachers = append(notFoundTeachers, email)
+			teachersNotFound = append(teachersNotFound, email)
 		}
 	}
 
-	if len(notFoundTeachers) > 0 {
+	if len(teachersNotFound) > 0 {
 		return c.Status(404).JSON(fiber.Map{
-			"message": fmt.Sprintf("Teacher(s) %v not found in database", notFoundTeachers),
+			"message": fmt.Sprintf("Teacher(s) %v not found in database", teachersNotFound),
 		})
 	}
 
+	// Find common students shared by ALL teachers
 	var students []string
 	db.Raw(`
 		SELECT studentEmail
